@@ -1211,6 +1211,39 @@ function updateSetInfo() {
         }
     }
 }
+/* ===== Export Progress ===== */
+document.getElementById("exportProgress").addEventListener("click", () => {
+    const prog = localStorage.getItem(PROG_KEY) || "{}";
+    const blob = new Blob([prog], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "progress.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+});
+
+/* ===== Import Progress ===== */
+document.getElementById("importProgress").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+            localStorage.setItem(PROG_KEY, JSON.stringify(data));
+            restoreProgress();
+            updateProgress();
+            alert("✅ Progress restored successfully!");
+        } catch (err) {
+            alert("❌ Invalid progress file.");
+        }
+    };
+    reader.readAsText(file);
+});
 
 document.getElementById('blurEnglish').addEventListener('change', () => {
     renderTable();

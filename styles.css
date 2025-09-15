@@ -656,3 +656,7 @@ tbody tr.bookmarked {
         align-items: flex-start;
     }
 }
+
+#importProgress {
+    display: none;
+}
