@@ -166,10 +166,12 @@ button:hover {
 }
 
 .btn-ghost:hover {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #fff;
-    border-color: transparent;
+    background: rgba(0, 0, 0, 0.15);
+    /* subtle dark overlay */
+    color: var(--text);
+    border-color: var(--accent);
 }
+
 
 /* Card */
 .card {
@@ -210,10 +212,13 @@ button:hover {
 }
 
 .tab-buttons button:hover {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: white;
+    background: rgba(0, 0, 0, 0.15);
+    /* subtle dark overlay */
+    color: var(--text);
+    border-color: var(--accent);
     transform: translateY(-1px);
 }
+
 
 
 /* Panels */
