@@ -1,2 +1,2 @@
 # dutch-vocabulary-practice
-Practice Dum
+Practice Dutch Vocabulary for inburgering A2 exam
