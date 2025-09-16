@@ -69,12 +69,12 @@ document.querySelectorAll('input[name="setMode"]').forEach(radio => {
 
         const fileControls = document.getElementById("fileModeControls");
         const contextControls = document.getElementById("contextModeControls");
+        const progress = document.getElementById("progress");
 
         // Grab tab buttons
         const tabTiles = document.getElementById("tabTiles");
         const tabPractice = document.getElementById("tabPractice");
         const tabPracticeBookmarked = document.getElementById("tabPracticeBookmarked");
-        const tabBookmarked = document.getElementById("tabBookmarked");
         const tabStudy = document.getElementById("tabStudy"); // << study tab button
 
 
@@ -87,17 +87,12 @@ document.querySelectorAll('input[name="setMode"]').forEach(radio => {
         if (setMode === "file") {
             fileControls.style.display = "block";
             contextControls.style.display = "none";
+            progress.style.display = "flex";
 
-            // Enable tabs
-            if (tabTiles) tabTiles.style.display = "inline-block";
-            if (tabPractice) tabPractice.style.display = "inline-block";
-            if (tabPracticeBookmarked) tabPracticeBookmarked.style.display = "inline-block";
-            if (shuffleToggle) shuffleToggle.style.display = "inline-block";
-
-            // Enable Next/Prev
-            if (nextBtn) nextBtn.style.display = "inline-block";
-            if (prevBtn) prevBtn.style.display = "inline-block";
-            if (shufflePill) shufflePill.style.display = "inline-block";
+            // Enable tabs and buttons
+            [tabTiles, tabPractice, tabPracticeBookmarked, shuffleToggle, nextBtn, prevBtn, shufflePill].forEach(el => {
+                if (el) el.style.display = "inline-block";
+            });
 
             // Load first set by default
             if (setSelect && setSelect.options.length > 0) {
@@ -108,17 +103,12 @@ document.querySelectorAll('input[name="setMode"]').forEach(radio => {
         } else {
             fileControls.style.display = "none";
             contextControls.style.display = "block";
+            progress.style.display = "none";
 
-            // Hide tabs not relevant in context mode
-            if (tabTiles) tabTiles.style.display = "none";
-            if (tabPractice) tabPractice.style.display = "none";
-            if (tabPracticeBookmarked) tabPracticeBookmarked.style.display = "none";
-            if (shuffleToggle) shuffleToggle.style.display = "none";
-
-            // Disable Next/Prev
-            if (nextBtn) nextBtn.style.display = "none";
-            if (prevBtn) prevBtn.style.display = "none";
-            if (shufflePill) shufflePill.style.display = "none";
+            // Hide tabs and buttons not relevant in context mode
+            [tabTiles, tabPractice, tabPracticeBookmarked, shuffleToggle, nextBtn, prevBtn, shufflePill].forEach(el => {
+                if (el) el.style.display = "none";
+            });
 
             // Auto load first context
             const ctxSelect = document.getElementById("contextSelect");
@@ -598,7 +588,9 @@ function renderPractice() {
     }
     currentSet.forEach((pair, idx) => {
         const row = document.createElement('div'); row.className = 'row';
-        const label = document.createElement('label'); label.textContent = pair.english;
+        const label = document.createElement('label');
+        label.textContent = pair.english;
+        label.setAttribute('for', `p_word_${idx}`);
         const wrap = document.createElement('div'); wrap.className = 'input-wrap';
         const input = document.createElement('input'); input.type = 'text'; input.id = `p_word_${idx}`;
         input.setAttribute('data-eng', pair.english);
@@ -716,8 +708,8 @@ function renderPracticeBookmarked() {
         row.className = 'row';
 
         const label = document.createElement('label');
-        label.setAttribute('for', `pb_word_${idx}`);
         label.textContent = pair.english;
+        label.setAttribute('for', `pb_word_${idx}`);
 
         const wrap = document.createElement('div');
         wrap.className = 'input-wrap';
@@ -1211,39 +1203,78 @@ function updateSetInfo() {
         }
     }
 }
-/* ===== Export Progress ===== */
+
+/* ===== Export Progress + Bookmarks ===== */
 document.getElementById("exportProgress").addEventListener("click", () => {
-    const prog = localStorage.getItem(PROG_KEY) || "{}";
-    const blob = new Blob([prog], { type: "application/json" });
+    const prog = JSON.parse(localStorage.getItem(PROG_KEY) || "{}");
+    const savedBookmarks = Array.from(bookmarks || []);
+
+    const exportData = {
+        version: 1,
+        progress: prog,
+        bookmarks: savedBookmarks,
+        exportedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "progress.json";
+    a.download = "vocab_progress.json";
     a.click();
 
     URL.revokeObjectURL(url);
 });
 
-/* ===== Import Progress ===== */
+
+/* ===== Import Progress + Bookmarks ===== */
 document.getElementById("importProgress").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Accept only JSON
+    if (file.type !== "application/json" && !file.name.endsWith(".json")) {
+        alert("❌ Invalid file type. Please upload a JSON file.");
+        e.target.value = ""; // reset input
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
         try {
             const data = JSON.parse(event.target.result);
-            localStorage.setItem(PROG_KEY, JSON.stringify(data));
+
+            // Validation: must contain expected keys
+            if (!data || typeof data !== "object" || !data.progress || !data.bookmarks) {
+                throw new Error("Invalid structure");
+            }
+
+            // Save progress
+            localStorage.setItem(PROG_KEY, JSON.stringify(data.progress));
+
+            // Save bookmarks
+            if (Array.isArray(data.bookmarks)) {
+                bookmarks = new Set(data.bookmarks);
+                persistBookmarks();
+            }
+
             restoreProgress();
             updateProgress();
-            alert("✅ Progress restored successfully!");
+            renderBookmarks();
+            renderPracticeBookmarked();
+
+            alert("✅ Progress and bookmarks restored successfully!");
         } catch (err) {
+            console.error("Import error:", err);
             alert("❌ Invalid progress file.");
+        } finally {
+            e.target.value = ""; // reset input so same file can be chosen again later
         }
     };
     reader.readAsText(file);
 });
+
 
 document.getElementById('blurEnglish').addEventListener('change', () => {
     renderTable();
