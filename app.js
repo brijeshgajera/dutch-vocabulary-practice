@@ -1327,7 +1327,6 @@ const scoreEl = document.getElementById("gameScore");
 const timerEl = document.getElementById("gameTimer");
 
 // Sounds
-const correctSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3");
 const wrongSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
 
 // Mode toggle (radio)
@@ -1396,7 +1395,6 @@ function handleTileClick(tile) {
     const b = tile;
 
     if (a.dataset.matchId === b.dataset.matchId) {
-        correctSound.play();
         gameScore += 10;
         a.classList.add("border-correct");
         b.classList.add("border-correct");
