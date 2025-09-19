@@ -79,9 +79,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-fill-color: transparent;
     padding-bottom: 2px;
-    //border-bottom: 2px solid var(--accent);
     display: inline-block;
 }
 
@@ -119,14 +117,6 @@ body {
     border-radius: 12px;
 }
 
-/* mobile: two columns layout for controls */
-@media (max-width: 720px) {
-    .controls {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-}
 
 /* Inputs/buttons style */
 input[type="file"],
@@ -353,13 +343,6 @@ button:hover {
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 3px 12px rgba(0, 0, 0, .2);
-}
-
-
-@media (max-width: 720px) {
-    .controls select {
-        flex: 1 1 100%;
-    }
 }
 
 
@@ -655,6 +638,28 @@ tbody tr.bookmarked {
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .game-board {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    }
+
+    .game-tile {
+        font-size: 0.8rem;
+        padding: 10px;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        hyphens: auto;
+    }
+
+    .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .controls select {
+        flex: 1 1 100%;
+    }
 }
 
 #importProgress {
@@ -686,21 +691,33 @@ tbody tr.bookmarked {
     display: grid;
     gap: 12px;
     justify-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    /* ensures tiles shrink to fit screen */
+    width: 100%;
 }
+
 
 .game-tile {
     background: var(--card);
     padding: 16px;
     border-radius: 12px;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.0rem;
     cursor: pointer;
     transition: border-color .3s, box-shadow .3s, transform .2s, opacity .25s;
     user-select: none;
     border: 2px solid var(--input-border);
     color: var(--text);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+
+    /* Force long words to break */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 /* correct highlight (green border) */
@@ -710,14 +727,13 @@ tbody tr.bookmarked {
 }
 
 .game-tile.revealed {
-    background: var(--accent);
-    color: #fff;
+    border: 2px solid var(--accent);
     transform: scale(1.02);
 }
 
 /* wrong highlight (red border only) */
 .game-tile.border-wrong {
-    border: 3px solid var(--bad);
+    border: 2px solid var(--bad);
     box-shadow: 0 0 6px rgba(255, 107, 107, 0.6);
     background: var(--card);
     color: inherit;
@@ -726,6 +742,7 @@ tbody tr.bookmarked {
 /* fade out when matched */
 .game-tile.matched {
     opacity: 0;
+    border-color: var(--ok);
     transform: scale(0.9);
     pointer-events: none;
 }

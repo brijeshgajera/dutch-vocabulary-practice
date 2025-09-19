@@ -1364,10 +1364,7 @@ function startGame(pairsCount) {
         tiles.push({ word: p.dutch, matchId: id });
         tiles.push({ word: p.english, matchId: id });
     });
-    tiles = shuffle(tiles);
-
-    const cols = Math.ceil(Math.sqrt(tiles.length));
-    board.style.gridTemplateColumns = `repeat(${cols}, minmax(100px,1fr))`;
+    tiles = shuffle(tiles).sort((a, b) => a.word.length - b.word.length);
 
     board.innerHTML = "";
     tiles.forEach(tile => {
