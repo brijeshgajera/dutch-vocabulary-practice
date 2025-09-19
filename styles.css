@@ -746,3 +746,11 @@ tbody tr.bookmarked {
     transform: scale(0.9);
     pointer-events: none;
 }
+
+.game-instruction {
+    font-size: 0.95rem;
+    color: var(--muted);
+    text-align: center;
+    margin: 10px 0 14px;
+    font-style: italic;
+}
