@@ -660,3 +660,72 @@ tbody tr.bookmarked {
 #importProgress {
     display: none;
 }
+
+/* ===== Game Tab ===== */
+.game-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mode-select {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.mode-select label {
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.game-board {
+    display: grid;
+    gap: 12px;
+    justify-content: center;
+}
+
+.game-tile {
+    background: var(--card);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: border-color .3s, box-shadow .3s, transform .2s, opacity .25s;
+    user-select: none;
+    border: 2px solid var(--input-border);
+    color: var(--text);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* correct highlight (green border) */
+.game-tile.border-correct {
+    border-color: var(--ok);
+    box-shadow: 0 0 6px rgba(46, 204, 113, 0.6);
+}
+
+.game-tile.revealed {
+    background: var(--accent);
+    color: #fff;
+    transform: scale(1.02);
+}
+
+/* wrong highlight (red border only) */
+.game-tile.border-wrong {
+    border: 3px solid var(--bad);
+    box-shadow: 0 0 6px rgba(255, 107, 107, 0.6);
+    background: var(--card);
+    color: inherit;
+}
+
+/* fade out when matched */
+.game-tile.matched {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+}

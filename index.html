@@ -99,6 +99,7 @@
 				<button data-tab="practice_bookmarked" id="tabPracticeBookmarked">⭐ Practice</button>
 				<button data-tab="bookmarked" id="tabBookmarked">⭐ Words</button>
 				<button data-tab="search" id="tabSearch">🔍 Search</button>
+				<button data-tab="game" id="tabGame" class="tab-btn">🎮 Game</button>
 			</div>
 
 			<!-- STUDY -->
@@ -227,6 +228,37 @@
 						<tbody id="searchTable"></tbody>
 					</table>
 				</div>
+			</section>
+
+			<!-- GAME -->
+			<section id="game" class="panel" aria-labelledby="tabGame">
+				<div class="game-controls">
+					<span id="gameScore" class="pill">Score: 0</span>
+					<span id="gameTimer" class="pill">Time: 0s</span>
+
+					<div class="mode-select">
+						<label>
+							<input type="radio" name="mode" value="random" checked>
+							Random
+						</label>
+						<label>
+							<input type="radio" name="mode" value="sequential">
+							Sequential
+						</label>
+					</div>
+
+					<select id="levelSelect">
+						<option value="3">Level 1 (6 tiles)</option>
+						<option value="5">Level 2 (10 tiles)</option>
+						<option value="9">Level 3 (18 tiles)</option>
+						<option value="15">Level 4 (30 tiles)</option>
+						<option value="25">Level 5 (50 tiles)</option>
+					</select>
+
+					<button id="startGameBtn" class="btn-ghost">Start Game</button>
+				</div>
+
+				<div id="gameBoard" class="game-board"></div>
 			</section>
 
 		</div> <!-- card -->

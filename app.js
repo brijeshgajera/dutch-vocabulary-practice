@@ -83,6 +83,7 @@ document.querySelectorAll('input[name="setMode"]').forEach(radio => {
         const nextBtn = document.getElementById("nextStudy");
         const prevBtn = document.getElementById("prevStudy");
         const shufflePill = document.getElementById("shufflePill");
+        const exportProgress = document.getElementById("exportProgress");
 
         if (setMode === "file") {
             fileControls.style.display = "block";
@@ -90,7 +91,7 @@ document.querySelectorAll('input[name="setMode"]').forEach(radio => {
             progress.style.display = "flex";
 
             // Enable tabs and buttons
-            [tabTiles, tabPractice, tabPracticeBookmarked, shuffleToggle, nextBtn, prevBtn, shufflePill].forEach(el => {
+            [tabTiles, tabPractice, tabPracticeBookmarked, shuffleToggle, nextBtn, prevBtn, shufflePill, exportProgress].forEach(el => {
                 if (el) el.style.display = "inline-block";
             });
 
@@ -106,7 +107,7 @@ document.querySelectorAll('input[name="setMode"]').forEach(radio => {
             progress.style.display = "none";
 
             // Hide tabs and buttons not relevant in context mode
-            [tabTiles, tabPractice, tabPracticeBookmarked, shuffleToggle, nextBtn, prevBtn, shufflePill].forEach(el => {
+            [tabTiles, tabPractice, tabPracticeBookmarked, shuffleToggle, nextBtn, prevBtn, shufflePill, exportProgress].forEach(el => {
                 if (el) el.style.display = "none";
             });
 
@@ -1310,3 +1311,151 @@ document.getElementById('stopAudioSearch').addEventListener('click', stopAudio);
     renderSearch('');
     updateProgress();
 })();
+
+/* ===== GAME LOGIC (Random/Sequential + Reset Only on Start) ===== */
+let gameScore = 0;
+let gameTimer = 0;
+let timerInterval = null;
+let firstTile = null;
+let lockBoard = false;
+let currentLevel = 3;
+let sequentialMode = false;
+let seqIndex = 0;
+
+const board = document.getElementById("gameBoard");
+const scoreEl = document.getElementById("gameScore");
+const timerEl = document.getElementById("gameTimer");
+
+// Sounds
+const correctSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3");
+const wrongSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+// Mode toggle (radio)
+document.querySelectorAll("input[name='mode']").forEach(radio => {
+    radio.addEventListener("change", e => {
+        sequentialMode = e.target.value === "sequential";
+        seqIndex = 0; // reset index
+    });
+});
+
+// Start game
+document.getElementById("startGameBtn").addEventListener("click", () => {
+    const pairsCount = parseInt(document.getElementById("levelSelect").value, 10);
+    resetGame();   // reset only on button click
+    startTimer();
+    startGame(pairsCount);
+});
+
+/* Start Game */
+function startGame(pairsCount) {
+    currentLevel = pairsCount;
+
+    let chosenPairs;
+    if (sequentialMode) {
+        chosenPairs = currentSet.slice(seqIndex, seqIndex + pairsCount);
+        seqIndex += pairsCount;
+        if (seqIndex >= currentSet.length) seqIndex = 0;
+    } else {
+        chosenPairs = shuffle([...currentSet]).slice(0, pairsCount);
+    }
+
+    let tiles = [];
+    chosenPairs.forEach(p => {
+        const id = p.dutch + "|" + p.english;
+        tiles.push({ word: p.dutch, matchId: id });
+        tiles.push({ word: p.english, matchId: id });
+    });
+    tiles = shuffle(tiles);
+
+    const cols = Math.ceil(Math.sqrt(tiles.length));
+    board.style.gridTemplateColumns = `repeat(${cols}, minmax(100px,1fr))`;
+
+    board.innerHTML = "";
+    tiles.forEach(tile => {
+        const div = document.createElement("div");
+        div.className = "game-tile";
+        div.textContent = tile.word;
+        div.dataset.matchId = tile.matchId;
+        div.addEventListener("click", () => handleTileClick(div));
+        board.appendChild(div);
+    });
+}
+
+/* Handle tile click */
+function handleTileClick(tile) {
+    if (lockBoard || tile.classList.contains("matched") || tile === firstTile) return;
+
+    tile.classList.add("revealed");
+
+    if (!firstTile) {
+        firstTile = tile;
+        return;
+    }
+
+    const a = firstTile;
+    const b = tile;
+
+    if (a.dataset.matchId === b.dataset.matchId) {
+        correctSound.play();
+        gameScore += 10;
+        a.classList.add("border-correct");
+        b.classList.add("border-correct");
+        removePair(a, b);
+    } else {
+        wrongSound.play();
+        gameScore -= 5;
+        lockBoard = true;
+        a.classList.add("border-wrong");
+        b.classList.add("border-wrong");
+        setTimeout(() => {
+            a.classList.remove("revealed", "border-wrong");
+            b.classList.remove("revealed", "border-wrong");
+            lockBoard = false;
+        }, 800);
+    }
+
+    scoreEl.textContent = `Score: ${gameScore}`;
+    firstTile = null;
+
+    if (board.querySelectorAll(".game-tile").length === 0) {
+        setTimeout(() => startGame(currentLevel), 1000);
+    }
+}
+
+/* Remove matched pair */
+function removePair(tile1, tile2) {
+    tile1.classList.add("matched");
+    tile2.classList.add("matched");
+    setTimeout(() => {
+        tile1.remove();
+        tile2.remove();
+        if (board.querySelectorAll(".game-tile").length === 0) {
+            setTimeout(() => startGame(currentLevel), 1000);
+        }
+    }, 400);
+}
+
+/* Reset */
+function resetGame() {
+    board.innerHTML = "";
+    gameScore = 0;
+    gameTimer = 0;
+    firstTile = null;
+    scoreEl.textContent = "Score: 0";
+    timerEl.textContent = "Time: 0s";
+    clearInterval(timerInterval);
+}
+
+/* Timer */
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        gameTimer++;
+        timerEl.textContent = `Time: ${gameTimer}s`;
+    }, 1000);
+}
+
+/* Shuffle helper */
+function shuffle(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+}
