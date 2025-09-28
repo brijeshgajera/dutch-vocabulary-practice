@@ -380,6 +380,8 @@ tbody td {
     overflow-wrap: break-word;
     word-break: break-word;
     white-space: normal;
+    overflow-wrap: anywhere;
+    hyphens: auto;
 }
 
 tbody tr.bookmarked {

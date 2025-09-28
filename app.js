@@ -942,15 +942,33 @@ function renderSearch(q) {
     const qn = normalize(q || '');
     const combinedList = [...wordPairs, ...contextPairs]; // merge both sources
 
-    // Filtered list
-    let list = qn
-        ? combinedList.filter(p =>
-            normalize(p.english).includes(qn) ||
-            normalize(p.dutch).includes(qn)
-        )
-        : [];
+    if (!qn) {
+        searchTable.innerHTML = '';
+        return;
+    }
 
-    // Deduplicate by Dutch + English combo
+    // Calculate match score (percentage)
+    function matchScore(word, query) {
+        if (!word || !query) return 0;
+        const idx = word.indexOf(query);
+        if (idx === -1) return 0;
+        // Score based on how much of the word is matched + prefix bonus
+        let score = (query.length / word.length) * 100;
+        if (idx === 0) score += 20; // prefix match bonus
+        return Math.min(100, score);
+    }
+
+    // Filter and calculate scores
+    let list = combinedList
+        .map(p => {
+            const d = normalize(p.dutch);
+            const e = normalize(p.english);
+            const score = Math.max(matchScore(d, qn), matchScore(e, qn));
+            return { ...p, score };
+        })
+        .filter(p => p.score > 0);
+
+    // Deduplicate by Dutch+English combo
     const seen = new Set();
     list = list.filter(p => {
         const key = `${p.dutch.toLowerCase()}|${p.english.toLowerCase()}`;
@@ -959,6 +977,10 @@ function renderSearch(q) {
         return true;
     });
 
+    // Sort by score DESC
+    list.sort((a, b) => b.score - a.score);
+
+    // Render table
     searchTable.innerHTML = '';
     list.forEach(p => {
         const tr = document.createElement('tr');
@@ -1319,7 +1341,7 @@ let timerInterval = null;
 let firstTile = null;
 let lockBoard = false;
 let currentLevel = 3;
-let sequentialMode = false;
+let sequentialMode = true;
 let seqIndex = 0;
 
 const board = document.getElementById("gameBoard");
@@ -1328,14 +1350,29 @@ const timerEl = document.getElementById("gameTimer");
 
 // Sounds
 const wrongSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+// Reference to instruction paragraph
+const gameInstruction = document.getElementById("gameInstruction");
 
-// Mode toggle (radio)
-document.querySelectorAll("input[name='mode']").forEach(radio => {
+// Update instruction text based on mode
+function updateInstruction(mode) {
+    if (mode === "sequential") {
+        gameInstruction.textContent = "Match Dutch and English word tiles — correct pairs disappear, wrong ones briefly highlight red. You're playing in Sequential mode.";
+    } else {
+        gameInstruction.textContent = "Match Dutch and English word tiles — correct pairs disappear, wrong ones briefly highlight red. You're playing in Random mode.";
+    }
+}
+
+updateInstruction("sequential");
+
+// Listen for mode changes
+document.querySelectorAll('input[name="mode"]').forEach(radio => {
     radio.addEventListener("change", e => {
-        sequentialMode = e.target.value === "sequential";
-        seqIndex = 0; // reset index
+        sequentialMode = (e.target.value === "sequential");
+        seqIndex = 0; // reset index if sequential
+        updateInstruction(e.target.value);
     });
 });
+
 
 // Start game
 document.getElementById("startGameBtn").addEventListener("click", () => {
@@ -1454,3 +1491,5 @@ function startTimer() {
 function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
 }
+
+

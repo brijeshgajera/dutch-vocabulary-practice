@@ -238,11 +238,11 @@
 
 					<div class="mode-select">
 						<label>
-							<input type="radio" name="mode" value="random" checked>
+							<input type="radio" name="mode" value="random">
 							Random
 						</label>
 						<label>
-							<input type="radio" name="mode" value="sequential">
+							<input type="radio" name="mode" value="sequential" checked>
 							Sequential
 						</label>
 					</div>
@@ -259,10 +259,10 @@
 				</div>
 
 				<!-- 🎮 Game instruction line -->
-				<p class="game-instruction">
+				<p id="gameInstruction" class="game-instruction">
 					Match Dutch and English word tiles — correct pairs disappear, wrong ones briefly highlight red.
+					You're playing in Sequential mode.
 				</p>
-
 				<div id="gameBoard" class="game-board"></div>
 			</section>
 
