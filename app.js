@@ -27,7 +27,6 @@ const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 const shuffleToggle = document.getElementById('shuffleToggle');
 const shufflePill = document.getElementById('shufflePill');
-const exportPdfBtn = document.getElementById('exportPdf');
 const resetProgressBtn = document.getElementById('resetProgress');
 const themeToggle = document.getElementById('themeToggle');
 const bookmarkTable = document.getElementById('bookmarkTable');
@@ -285,9 +284,6 @@ function bindEvents() {
         updateShuffleUI();
         loadSet(currentPage);
     });
-
-    // Export PDF
-    exportPdfBtn.addEventListener('click', exportPdf);
 
     // Reset progress
     resetProgressBtn.addEventListener('click', () => {
@@ -1158,29 +1154,122 @@ function speakUtter(text, lang) {
     });
 }
 
+/* ===== Helpers: ensure long tokens can break ===== */
+function insertSoftBreaks(str, maxLen = 30) {
+    if (!str) return '';
+    // normalize whitespace first
+    str = String(str).replace(/\s+/g, ' ').trim();
+    // insert a ZERO WIDTH SPACE after every maxLen non-space characters sequence
+    // this allows browsers / jspdf autotable to break long unbroken words
+    const re = new RegExp(`(\\S{${maxLen}})`, 'g');
+    return str.replace(re, `$1\u200B`);
+}
 
-/* PDF Export (study table) */
-function exportPdf() {
+function safeTextForPdf(s) {
+    // keep original slashes, but make long tokens breakable
+    return insertSoftBreaks(String(s || ''), 30);
+}
+
+/* ===== Export PDF with wrapping + multi-page support ===== */
+function exportPdf(onlyBookmarks = false) {
+    // Ensure jspdf and autotable are loaded
+    if (!window.jspdf || !window.jspdf.jsPDF || !window.jspdf.plugin?.autoTable && !window.jspdf?.autoTable && !window.jspdf.jsPDF.API?.autoTable) {
+        alert('PDF libraries not loaded (jsPDF + autoTable).');
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
     const margin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const usableWidth = pageWidth - margin * 2;
+
+    // pick column widths - make Dutch slightly narrower than English
+    const col0 = Math.round(usableWidth * 0.45); // Dutch
+    const col1 = usableWidth - col0;              // English
+
+    // Determine filename suffix (selected set/context)
+    let setName = 'default';
+    try {
+        if (typeof setMode !== 'undefined' && setMode === 'context') {
+            const ctx = document.getElementById('contextSelect');
+            if (ctx && ctx.value) setName = ctx.value;
+        } else {
+            const sel = document.getElementById('setSelect');
+            if (sel && sel.value) setName = sel.value;
+        }
+    } catch (e) { /* ignore */ }
+
+    setName = String(setName).replace(/\s+/g, '_').toLowerCase();
+
+    // Build the rows array for autoTable
+    let rows = [];
+    if (onlyBookmarks) {
+        if (!bookmarks || bookmarks.size === 0) {
+            alert('No bookmarked words to export.');
+            return;
+        }
+        // bookmarks keys might use different separators; handle common ones
+        Array.from(bookmarks).forEach(k => {
+            // try multiple separators: '|||' or '|' or '|||'
+            let parts;
+            if (k.includes('|||')) parts = k.split('|||');
+            else if (k.includes('||')) parts = k.split('||');
+            else if (k.includes('|')) parts = k.split('|');
+            else parts = k.split('@@@'); // fallback (unlikely)
+            const dutch = parts[1] || '';
+            const english = parts[0] || (parts[0] ? '' : '');
+            rows.push([safeTextForPdf(dutch), safeTextForPdf(english)]);
+        });
+    } else {
+        // export currentSet (safe for either set or context mode)
+        rows = currentSet.map(p => [safeTextForPdf(p.dutch), safeTextForPdf(p.english)]);
+    }
+
+    // Title
     doc.setFontSize(16);
-    doc.text('Dutch Vocabulary — Study Table', margin, 48);
-    doc.setFontSize(11);
-    let y = 72;
-    const lineH = 16;
-    const pageHeight = doc.internal.pageSize.height - margin;
-    doc.text('Dutch', margin, y);
-    doc.text('English', margin + 300, y);
-    y += lineH;
-    currentSet.forEach(pair => {
-        if (y > pageHeight) { doc.addPage(); y = margin; }
-        doc.text(String(pair.dutch), margin, y);
-        doc.text(String(pair.english), margin + 300, y);
-        y += lineH;
+    const title = onlyBookmarks ? 'Dutch Vocabulary — Bookmarked Words' : 'Dutch Vocabulary — Study Table';
+    doc.text(title, margin, 40);
+
+    // AutoTable config - will automatically split over pages
+    doc.autoTable({
+        startY: 60,
+        head: [['Dutch', 'English']],
+        body: rows,
+        theme: 'grid',
+        styles: {
+            fontSize: 10,
+            cellPadding: 6,
+            overflow: 'linebreak',    // allow line breaks
+            valign: 'middle',
+        },
+        columnStyles: {
+            0: { cellWidth: col0 },
+            1: { cellWidth: col1 }
+        },
+        margin: { left: margin, right: margin, top: 60, bottom: 40 },
+        // optional: make the header visually distinct on each page
+        headStyles: { fillColor: [52, 152, 219], textColor: 255, halign: 'left' }
+        // autoTable will handle page breaks automatically
     });
-    doc.save('DutchVocabulary.pdf');
+
+    const filename = onlyBookmarks
+        ? `DutchVocabulary_Bookmarked.pdf`
+        : `DutchVocabulary_${setName}.pdf`;
+
+    doc.save(filename);
 }
+
+/* ===== Attach listeners (no inline onclick) ===== */
+document.addEventListener('DOMContentLoaded', () => {
+    const btnAll = document.getElementById('btnExportAll');
+    if (btnAll) btnAll.addEventListener('click', () => exportPdf(false));
+
+    const btnBookmarks = document.getElementById('btnExportBookmarks');
+    if (btnBookmarks) btnBookmarks.addEventListener('click', () => exportPdf(true));
+});
+
 
 /* Shuffle util & UI */
 function shuffleArray(arr) {

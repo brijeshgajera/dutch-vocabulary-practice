@@ -8,7 +8,13 @@
 	<link rel="icon" type="image/png" href="favicon.png">
 	<!-- Libraries -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+	<!-- jsPDF + AutoTable -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+	<!-- Your app logic -->
+	<script type="module" src="app.js"></script>
+
 	<!-- link CSS -->
 	<link rel="stylesheet" href="./styles.css" />
 </head>
@@ -73,7 +79,6 @@
 
 			<!-- Buttons row -->
 			<div class="controls">
-				<button id="exportPdf" class="btn-ghost">Export PDF</button>
 				<button id="resetProgress" class="btn-ghost">Reset Progress</button>
 				<button id="exportProgress" class="btn-ghost">Export Progress ⬇️</button>
 				<label for="importProgress" class="btn-ghost"
@@ -105,6 +110,7 @@
 			<!-- STUDY -->
 			<section id="study" class="panel active" aria-labelledby="tabStudy">
 				<div class="study-controls">
+
 					<button id="playAllStudy" class="btn-audio">Play All 🔊</button>
 					<button id="stopAudio" class="btn-audio stop">Stop Audio 🛑</button>
 					<label class="blur-toggle">
@@ -113,6 +119,7 @@
 					<label class="blur-toggle">
 						<input type="checkbox" id="blurEnglish"> Blur English
 					</label>
+					<button id="btnExportAll" class="btn-ghost">Export Set to Pdf</button>
 				</div>
 
 
@@ -187,6 +194,7 @@
 				<div class="table-tools">
 					<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
 						<div id="bookmarkIndicator" class="pill">Bookmarks: 0</div>
+						<button id="btnExportBookmarks" class="btn-ghost">Export Bookmarked</button>
 						<button id="clearBookmarks" class="btn-ghost">Clear Bookmarks</button>
 						<button id="playAllBookmarks" class="btn-audio">Play All 🔊</button>
 						<button id="stopAudioBookmarks" class="btn-audio stop">Stop Audio 🛑</button>
@@ -197,10 +205,10 @@
 					<table aria-label="Bookmarked words">
 						<thead>
 							<tr>
-								<th>Dutch</th>
-								<th>English</th>
-								<th>🔊</th>
-								<th>⭐</th>
+								<th style="width:34%">Dutch</th>
+								<th style="width:34%">English</th>
+								<th style="width:16%">🔊</th>
+								<th style="width:16%">⭐</th>
 							</tr>
 						</thead>
 						<tbody id="bookmarkTable"></tbody>
@@ -268,7 +276,6 @@
 
 		</div> <!-- card -->
 	</div> <!-- wrap -->
-	<script type="module" src="./app.js"></script>
 </body>
 
 </html>
