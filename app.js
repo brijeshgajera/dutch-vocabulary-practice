@@ -952,10 +952,17 @@ function renderSearch(q) {
         if (!word || !query) return 0;
         const idx = word.indexOf(query);
         if (idx === -1) return 0;
-        // Score based on how much of the word is matched + prefix bonus
         let score = (query.length / word.length) * 100;
-        if (idx === 0) score += 20; // prefix match bonus
+        if (idx === 0) score += 20; // prefix bonus
         return Math.min(100, score);
+    }
+
+    // Get best score across multiple variants (split by "/")
+    function bestScoreAcrossVariants(text, query) {
+        return text
+            .split('/')
+            .map(v => normalize(v.trim()))
+            .reduce((max, variant) => Math.max(max, matchScore(variant, query)), 0);
     }
 
     // Filter and calculate scores
@@ -963,7 +970,10 @@ function renderSearch(q) {
         .map(p => {
             const d = normalize(p.dutch);
             const e = normalize(p.english);
-            const score = Math.max(matchScore(d, qn), matchScore(e, qn));
+            const score = Math.max(
+                bestScoreAcrossVariants(d, qn),
+                bestScoreAcrossVariants(e, qn)
+            );
             return { ...p, score };
         })
         .filter(p => p.score > 0);
@@ -1018,6 +1028,7 @@ function renderSearch(q) {
         searchTable.appendChild(tr);
     });
 }
+
 
 
 /* ===== Tile Rendering with flip + highlight ===== */
