@@ -1201,8 +1201,6 @@ function exportPdf(onlyBookmarks = false) {
         }
     } catch (e) { /* ignore */ }
 
-    setName = String(setName).replace(/\s+/g, '_').toLowerCase();
-
     // Build the rows array for autoTable
     let rows = [];
     if (onlyBookmarks) {
@@ -1229,9 +1227,13 @@ function exportPdf(onlyBookmarks = false) {
 
     // Title
     doc.setFontSize(16);
-    const title = onlyBookmarks ? 'Dutch Vocabulary — Bookmarked Words' : 'Dutch Vocabulary — Study Table';
+    // build title
+    const title = onlyBookmarks
+        ? `Dutch Vocabulary — Bookmarked Words`
+        : `Dutch Vocabulary — Study Table (${setName})`;
     doc.text(title, margin, 40);
 
+    setName = String(setName).replace(/\s+/g, '_').toLowerCase();
     // AutoTable config - will automatically split over pages
     doc.autoTable({
         startY: 60,
@@ -1241,18 +1243,23 @@ function exportPdf(onlyBookmarks = false) {
         styles: {
             fontSize: 10,
             cellPadding: 6,
-            overflow: 'linebreak',    // allow line breaks
+            overflow: 'linebreak',
             valign: 'middle',
+            textColor: [30, 30, 30]   // << darker text for table content
+        },
+        headStyles: {
+            fillColor: [52, 152, 219],
+            textColor: 255,
+            halign: 'left',
+            fontStyle: 'bold'
         },
         columnStyles: {
             0: { cellWidth: col0 },
             1: { cellWidth: col1 }
         },
-        margin: { left: margin, right: margin, top: 60, bottom: 40 },
-        // optional: make the header visually distinct on each page
-        headStyles: { fillColor: [52, 152, 219], textColor: 255, halign: 'left' }
-        // autoTable will handle page breaks automatically
+        margin: { left: margin, right: margin, top: 60, bottom: 40 }
     });
+
 
     const filename = onlyBookmarks
         ? `DutchVocabulary_Bookmarked.pdf`
