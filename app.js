@@ -943,9 +943,28 @@ function renderSearch(q) {
         return;
     }
 
+    const isPrefixSearch = qn.endsWith('*');
+    const isSuffixSearch = qn.startsWith('*');
+    const cleanQuery = qn.replace(/\*/g, '');
+
     // Calculate match score (percentage)
     function matchScore(word, query) {
         if (!word || !query) return 0;
+
+        if (isPrefixSearch) {
+            // starts with
+            return word.startsWith(cleanQuery)
+                ? Math.round((cleanQuery.length / word.length) * 100) + 20
+                : 0;
+        }
+        if (isSuffixSearch) {
+            // ends with
+            return word.endsWith(cleanQuery)
+                ? Math.round((cleanQuery.length / word.length) * 100) + 20
+                : 0;
+        }
+
+        // Normal contains search
         const idx = word.indexOf(query);
         if (idx === -1) return 0;
         let score = (query.length / word.length) * 100;
@@ -967,8 +986,8 @@ function renderSearch(q) {
             const d = normalize(p.dutch);
             const e = normalize(p.english);
             const score = Math.max(
-                bestScoreAcrossVariants(d, qn),
-                bestScoreAcrossVariants(e, qn)
+                bestScoreAcrossVariants(d, cleanQuery),
+                bestScoreAcrossVariants(e, cleanQuery)
             );
             return { ...p, score };
         })
@@ -1024,6 +1043,7 @@ function renderSearch(q) {
         searchTable.appendChild(tr);
     });
 }
+
 
 
 
