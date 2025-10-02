@@ -27,8 +27,8 @@ A modern, interactive web app for practicing and mastering Dutch vocabulary. Upl
 - **Responsive Design**: Works on desktop and mobile browsers.
 
 ## How to Use
-
-1. **Upload Vocabulary**: Click "Upload Excel" and select your file. Column A should be Dutch, Column B English.
+1. **Upload Vocabulary**: Click "Upload Excel" and select your file. Column A should be Dutch, Column B English.  
+	_If you don't upload an Excel file, a set of default Dutch-English word pairs will be loaded automatically so you can start practicing right away._
 2. **Choose Mode**: Select "By Set" for paginated sets, or "By Context" for topic-based practice.
 3. **Study**: Use the Study tab to review words. Blur columns for self-testing.
 4. **Practice**: Use Practice tabs to type answers and get feedback. Use Bookmarked Practice for starred words.
