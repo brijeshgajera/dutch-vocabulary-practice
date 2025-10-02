@@ -1,3 +1,9 @@
+# Access the App Online
+
+You can use the Dutch Vocabulary Trainer directly in your browser:
+
+👉 [https://brijeshgajera.github.io/dutch-vocabulary-practice/](https://brijeshgajera.github.io/dutch-vocabulary-practice/)
+
 # Dutch Vocabulary Trainer
 
 A modern, interactive web app for practicing and mastering Dutch vocabulary. Upload your own Excel files, study, practice, bookmark, and track your progress with ease.
