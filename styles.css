@@ -5,7 +5,7 @@
     --bg: #0b1020;
     --card: #151b2d;
     --muted: #9fb0d6;
-    --table-border: 1px solid rgba(255, 255, 255, .02);
+    --table-border: 1px solid rgba(255, 255, 255, .07);
     --text: #e9edff;
     --tab-border: 1px solid rgba(255, 255, 255, .25);
     --table-header: #9fb0d6;
@@ -754,4 +754,13 @@ tbody tr.bookmarked {
     text-align: center;
     margin: 10px 0 14px;
     font-style: italic;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 15px 0;
+    font-size: 14px;
+    color: #888;
+    border-top: var(--table-border)
 }
